@@ -1,0 +1,26 @@
+#+TITLE: Epic -- Evernote Picker for Cocoa Emacs
+#+AUTHOR: Yoshinari Nomura
+#+EMAIL: nom@quickhack.net
+#+DATE: 2011-06-24
+
+* Epic
+
+Epic is a small elisp to access Evernote process via AppleScript.
+After load this file, you can:
+
+  1) drag notes in Evernote to an Org-mode buffer.
+  2) use M-x ``epic-anything'' for completion of Tag and Notebook.
+  3) use M-x ``epic-insert-selected-note-as-org-links''
+     for insertion of org-style links.
+
+* Note for setup
+
+  Since the current Evernote (2.2) does not have any interface to
+  acquire note-links in the form of ``evernote://...'',
+  Epic sends Control-L to make Evernote put the links to clipboard.
+  So, you have to bind Control-L to ``copy note link'' within Evernote.
+  Please set up your Mac referring to:
+    http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
+
+ The updated version might be available from:
+   http://github.com/yoshinari-nomura/epic
