@@ -9,10 +9,12 @@
 ;; Epic is a small elisp to access Evernote process via AppleScript.
 ;; After load this file, you can:
 ;;
-;;   + drag notes in Evernote to an Org-mode buffer.
+;;   + drag notes in Evernote to an org-mode buffer.
 ;;   + use M-x ``epic-anything'' for completion of Tag and Notebook.
 ;;   + use M-x ``epic-insert-selected-note-as-org-links''
 ;;     for insertion of org-style links.
+;;   + use M-x ``epic-create-note-from-region''
+;;     for creation of a new note in your local Evernote.
 ;; 
 ;; Note for setup:
 ;;   Since the current Evernote (2.2) does not have any interface to
@@ -27,18 +29,29 @@
 
 ;;; Code:
 
+(require 'htmlize)
+
 ;;
 ;; Get info from Evernote
 ;;
 
+(defvar epic-cache-notebooks nil)
+(defvar epic-cache-tags      nil)
+
 (defun epic-notebooks ()
-  (epic/get-name-list "notebooks"))
+  "Get name list of notebooks in Evernote DB"
+  (or epic-cache-notebooks
+      (setq epic-cache-notebooks
+            (epic/get-name-list "notebooks"))))
 
 (defun epic-tags ()
-  (epic/get-name-list "tags"))
+  "Get name list of tags in Evernote DB"
+  (or epic-cache-tags
+      (setq epic-cache-tags
+            (epic/get-name-list "tags"))))
 
 (defun epic/get-name-list (obj-name)
-  ;; obj-name is assumed "notebooks" or "tags"
+  "Get name list of tags or notebooks in Evernote DB. OBJ-NAME must be ``tags'' or ``notebook''"
   (split-string
    (substring
     (do-applescript (format "
@@ -84,6 +97,110 @@
     ")
   (split-string (ns-get-pasteboard)))
 
+(defun epic-selected-note-list ()
+  "Get selected notes as a list of (uri . title) cons cell.
+like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
+  (let ((uris   (epic-selected-note-uris))
+        (titles (epic-selected-note-titles))
+        (result '()))
+    (while (and (car uris) (car titles))
+      (setq result (cons (cons (car uris) (car titles)) result))
+      (setq uris   (cdr uris))
+      (setq titles (cdr titles)))
+    result))
+
+;;
+;; Completing read for Tags, Notebooks
+;;
+
+(defun epic-read-notebook (&optional default)
+  (interactive)
+  (epic/completing-read "Notebook: " (epic-notebooks)
+                        'epic-notebook-history (or default "")))
+
+(defun epic-read-tag (&optional default)
+  (interactive)
+  (epic/completing-read "Tag: " (epic-tags) 'epic-tag-history (or default "")))
+
+(defun epic-read-tag-list ()
+  (interactive)
+  (let (tag (tag-list '()))
+    (while (not (string= "" 
+                         (setq
+                          tag
+                          (epic/completing-read
+                           "Add tag (finish to blank): " (epic-tags) 'epic-tag-history ""))))
+      (setq tag-list (cons tag tag-list))
+      (setq tag ""))
+    (nreverse tag-list)))
+      
+(defun epic-read-title (&optional default)
+  (interactive)
+  (read-string "Title: " default 'epic-title-history default))
+
+(defun epic/completing-read (prompt collection hist &optional default)
+  (let ((anything-use-migemo t))
+    (completing-read prompt collection nil 'force
+                     nil hist default)))
+
+;;
+;; Misc
+;;
+
+(defun epic/as-quote (obj)
+  "Make AppleScript literals (List and String) from lisp OBJ."
+  (cond
+   ((stringp obj)
+    (format "\"%s\"" (replace-regexp-in-string "\"" "\\\\\"" obj)))
+   ((listp obj)
+    (concat "{" (mapconcat 'epic/as-quote obj ", ") "}"))
+   ))
+
+(defun epic/as-option (opt-name opt-value)
+  "Make AppleScript optional OPT-NAME phrase if OPT-VALUE is not blank."
+  (if (or (null opt-value)
+          (and (stringp opt-value)
+               (string= opt-value "")))
+      ""
+    (format "%s %s" opt-name (epic/as-quote opt-value))))
+
+;;
+;; Create note
+;;
+
+(defun epic-create-note-from-region (beg end title notebook tags)
+  (interactive 
+   (list (region-beginning) (region-end)
+         (epic-read-title)
+         (epic-read-notebook)
+         (epic-read-tag-list)))
+  (let* ((htmlize-output-type 'font)
+         (htmlbuf   (htmlize-region beg end))
+         (temp-file (make-temp-file "epic" nil ".html")))
+    (unwind-protect
+	(with-current-buffer htmlbuf
+          (write-region nil nil temp-file nil 'silent)
+          (epic-create-note-from-file temp-file title notebook tags))
+      (kill-buffer htmlbuf)
+      (delete-file temp-file)
+      )))
+
+(defun epic-create-note-from-file (file-name title &optional notebook tags)
+  (do-applescript (format "
+    tell application \"Evernote\"
+      set aNote to (create note from file %s title %s %s %s)
+      open note window with aNote
+      activate
+    end tell
+    " (epic/as-quote file-name)
+    (epic/as-quote title)
+    (epic/as-option "notebook" notebook)
+    (epic/as-option "tags" tags))))
+
+;;
+;; Org-mode support
+;;
+
 (defun epic/zipup-to-org-links (uris titles)
   (let ((result ""))
     (while (and (car uris) (car titles))
@@ -93,10 +210,6 @@
       (setq titles (cdr titles)))
     result))
 
-;;
-;; Evernote + OrgMode -- Interactive funtions
-;;
-
 (defun epic-insert-selected-note-as-org-links ()
   "Insert org-style links to the selected notes in Evernote."
   (interactive)
@@ -105,7 +218,7 @@
            (epic-selected-note-titles))))
 
 ;;
-;; By typing C-cC-o (org-open-at-point) on an org-link as bellow,
+;; By typing C-cC-o (org-open-at-point) on an org-link,
 ;; you can open a corresponding note in your desktop Evernote app.
 ;; 
 (defun epic-org-evernote-open (path)
@@ -129,7 +242,7 @@
   (setq ns-input-text nil))
 
 ;;
-;; Evernote + Anything
+;; Anything support
 ;;
 
 (setq anything-c-source-evernote-tags
@@ -145,6 +258,14 @@
     (migemo)
     (action . (lambda (candidate) (insert "@" candidate) candidate))
     ))
+
+(defun epic-anything-tags ()
+  (interactive)
+  (anything '(anything-c-source-evernote-tags)))
+
+(defun epic-anything-notebooks ()
+  (interactive)
+  (anything '(anything-c-source-evernote-notebooks)))
 
 (defun epic-anything ()
   (interactive)
