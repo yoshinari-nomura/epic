@@ -6,26 +6,53 @@
 
 ;;; Commentay:
 
-;; Epic is a small elisp to access Evernote process via AppleScript.
-;; After load this file, you can:
+;; * What is Epic ? 
 ;;
-;;   + drag notes in Evernote to an org-mode buffer.
-;;   + use M-x ``epic-anything'' for completion of Tag and Notebook.
-;;   + use M-x ``epic-insert-selected-note-as-org-links''
-;;     for insertion of org-style links.
-;;   + use M-x ``epic-create-note-from-region''
-;;     for creation of a new note in your local Evernote.
-;; 
-;; Note for setup:
+;;   Epic is a small elisp to access Evernote process via AppleScript.
+;;   The updated version might be available from:
+;;     http://github.com/yoshinari-nomura/epic
+;;
+;;   Epic has these functions:
+;;
+;;   - For org-mode users:
+;;     + Org-mode becomes to recognize evernote:// links.
+;;     + You can drag notes in Evernote app to an org-mode buffer.
+;;     + ``epic-insert-selected-note-as-org-links''
+;;        for insertion of org-style links.
+;;
+;;   - Completing read for tags and notebooks:
+;;     + ``epic-anything'' :: insert tag and notebook using anything.el package.
+;;     + ``epic-read-notebook'', ``epic-read-tag'', `epic-read-tag-list'' :: 
+;;       for the completion of tags and notebooks.
+;;
+;;   - Creation of note articles:
+;;     + ``epic-create-note-from-region'', ``epic-create-note-from-file'' ::
+;;       for creation of a new note in your local Evernote.
+;;
+;;   - For Mew users:
+;;     + ``epic-mew-forward-to-evernote'' :: 
+;;        Nifty mail forwarder.
+;;        You need to set the vars: ``epic-evernote-mail-address'',
+;;        ``epic-evernote-mail-headers''
+;;     + ``epic-mew-create-note'' :: 
+;;        Import a mail article into the local Evernote app.
+;;
+;; * Setting Example
+;;
+;;   : (require 'epic)
+;;   : (define-key global-map [(control ?:)] 'epic-anything)
+;;   : (define-key mew-summary-mode-map "r" 'epic-mew-create-note)
+;;   : (define-key mew-summary-mode-map "e" 'epic-mew-forward-to-evernote)
+;;   : (setq epic-evernote-mail-address "??????@???.evernote.com")
+;;
+;; * Note for setup
+;;
 ;;   Since the current Evernote (2.2) does not have any interface to
 ;;   acquire note-links in the form of ``evernote://...'',
 ;;   Epic sends Control-L to make Evernote put the links to clipboard.
 ;;   So, you have to bind Control-L to ``copy note link'' within Evernote.
 ;;   Please set up your Mac referring to:
-;;    http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
-;;
-;; The updated version might be available from:
-;;   http://github.com/yoshinari-nomura/epic
+;;     http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
 
 ;;; Code:
 
@@ -35,23 +62,25 @@
 ;; Get info from Evernote
 ;;
 
+;; XXX: some cache control to be added.
 (defvar epic-cache-notebooks nil)
 (defvar epic-cache-tags      nil)
 
 (defun epic-notebooks ()
-  "Get name list of notebooks in Evernote DB"
+  "Return the name list of notebooks in Evernote."
   (or epic-cache-notebooks
       (setq epic-cache-notebooks
             (epic/get-name-list "notebooks"))))
 
 (defun epic-tags ()
-  "Get name list of tags in Evernote DB"
+  "Return the name list of tags in Evernote."
   (or epic-cache-tags
       (setq epic-cache-tags
             (epic/get-name-list "tags"))))
 
 (defun epic/get-name-list (obj-name)
-  "Get name list of tags or notebooks in Evernote DB. OBJ-NAME must be ``tags'' or ``notebook''"
+  "Return the name list of tags or notebooks in Evernote.
+ OBJ-NAME must be ``tags'' or ``notebook''"
   (split-string
    (substring
     (do-applescript (format "
@@ -66,6 +95,7 @@
    "\n"))
 
 (defun epic-selected-note-titles ()
+  "Return the titles of selected notes in Evernote."
   (sit-for 0.1) ;; required in case called as DnD-callbacks.
   (split-string
    (substring
@@ -81,6 +111,11 @@
    "\n"))
 
 (defun epic-selected-note-uris ()
+  "Return the URI list of the selected notes in Evernote.
+ URIs are in the form of evernote://...
+ Evernote seems to add URIs to their notes on syncing with its cloud server.
+ Therefore, this function does not work with a note which is not never
+ synced before."
   (do-applescript "
     tell application \"System Events\"
       set frontApp to name of first application process whose frontmost is true
@@ -98,8 +133,8 @@
   (split-string (ns-get-pasteboard)))
 
 (defun epic-selected-note-list ()
-  "Get selected notes as a list of (uri . title) cons cell.
-like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
+  "Return selected notes as a list of (uri . title) cons cell
+ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))."
   (let ((uris   (epic-selected-note-uris))
         (titles (epic-selected-note-titles))
         (result '()))
@@ -114,31 +149,40 @@ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
 ;;
 
 (defun epic-read-notebook (&optional default)
+  "Completing read for notebooks of Evernote.
+ This is supposed to work better with anything.el package."
   (interactive)
   (epic/completing-read "Notebook: " (epic-notebooks)
                         'epic-notebook-history (or default "")))
 
 (defun epic-read-tag (&optional default)
+  "Completing read for tags of Evernote.
+ This is supposed to work better with anything.el package."
   (interactive)
   (epic/completing-read "Tag: " (epic-tags) 'epic-tag-history (or default "")))
 
 (defun epic-read-tag-list ()
+  "Completing read for tags of Evernote.
+ This repeats ``epic-read-tag'' until the input is blank, and returns
+ the tags in list-form."
   (interactive)
   (let (tag (tag-list '()))
-    (while (not (string= "" 
-                         (setq
-                          tag
-                          (epic/completing-read
-                           "Add tag (finish to blank): " (epic-tags) 'epic-tag-history ""))))
+    (while (not (string= "" (setq tag
+                                  (epic/completing-read
+                                   "Add tag (finish to blank): "
+                                   (epic-tags)
+                                   'epic-tag-history ""))))
       (setq tag-list (cons tag tag-list))
       (setq tag ""))
     (nreverse tag-list)))
       
 (defun epic-read-title (&optional default)
+  "Same as ``read-string'' with the exception of a descriptive prompt."
   (interactive)
   (read-string "Title: " default 'epic-title-history default))
 
 (defun epic/completing-read (prompt collection hist &optional default)
+  "Completing read for getting along with migemo and anything.el package."
   (let ((anything-use-migemo t))
     (completing-read prompt collection nil 'force
                      nil hist default)))
@@ -148,7 +192,7 @@ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
 ;;
 
 (defun epic/as-quote (obj)
-  "Make AppleScript literals (List and String) from lisp OBJ."
+  "Make AppleScript literals (List or String) from lisp OBJ."
   (cond
    ((stringp obj)
     (format "\"%s\"" (replace-regexp-in-string "\"" "\\\\\"" obj)))
@@ -169,6 +213,9 @@ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
 ;;
 
 (defun epic-create-note-from-region (beg end title notebook tags)
+  "Create a note article of Evernote from the text between BEG to END.
+ Set TITLE (string), NOTEBOOK (stirng), and TAGS (list of string)
+ to the article, and store it to Evernote."
   (interactive 
    (list (region-beginning) (region-end)
          (epic-read-title)
@@ -186,6 +233,9 @@ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
       )))
 
 (defun epic-create-note-from-file (file-name title &optional notebook tags)
+  "Create a note aricle of Evernote from the FILE-NAME.
+ Set TITLE (stirng), NOTEBOOK (string), and TAGS (list of string)
+ to the article, and store it to Evernote."
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to (create note from file %s title %s %s %s)
@@ -202,6 +252,8 @@ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
 ;;
 
 (defun epic/zipup-to-org-links (uris titles)
+  "Take two lists and zip up them to be org-style links like:
+    [[URI1][TITLE1]] LF [[URI2][TITLE2]]..."
   (let ((result ""))
     (while (and (car uris) (car titles))
       (setq result
@@ -260,19 +312,109 @@ like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))"
     ))
 
 (defun epic-anything-tags ()
+  "Insert a name of tag of Evernote with the prefix of `#'
+ using anything.el package."
   (interactive)
   (anything '(anything-c-source-evernote-tags)))
 
 (defun epic-anything-notebooks ()
+  "Insert a name of notebook of Evernote with the prefix of `@'
+ using anything.el package."
   (interactive)
   (anything '(anything-c-source-evernote-notebooks)))
 
 (defun epic-anything ()
+  "Insert a tag or notebook of Evernote with the prefix of `#' or `@'
+ using anything.el package."
   (interactive)
   (anything '(
      anything-c-source-evernote-tags
      anything-c-source-evernote-notebooks
      )))
+
+;;
+;; Mew support
+;;
+
+(defun epic-mew-create-note (title notebook tags)
+  "Import a mail article into the local Evernote app.
+ The mail article must be selected and displayed
+ by typing ``.'' (mew-summary-analyze-again) in the mew-summary buffer."
+  (interactive 
+   (list (epic-read-title (nth 4 (epic/mew-get-message-info)))
+         (epic-read-notebook)
+         (epic-read-tag-list)))
+  (when (memq major-mode '(mew-summary-mode mew-virtual-mode))
+    (let* ((msgnum (mew-summary-message-number2))
+           (folder-name (mew-summary-folder-name)))
+      (save-window-excursion
+        (mew-summary-set-message-buffer folder-name msgnum)
+        (epic-create-note-from-region
+         (window-start (get-buffer-window))
+         (point-max) title notebook tags)))))
+
+(defun epic/mew-get-message-info ()
+  (interactive)
+  (when (memq major-mode '(mew-summary-mode mew-virtual-mode))
+      (let ((msgnum (mew-summary-message-number2))
+            (folder (mew-summary-folder-name))
+            (window) (begin) (end) (subject))
+        (save-window-excursion
+          (mew-summary-set-message-buffer folder msgnum)
+          (setq window  (get-buffer-window))
+          (setq begin   (window-start window))
+          (setq end     (point-max))
+          (setq subject (mew-header-get-value mew-subj:)))
+        (list folder msgnum begin end subject))))
+
+;;
+;; Send email forwarding to Evernote server by using Mew.
+;;
+
+(defvar epic-evernote-mail-address
+  "your-evernote-importer-address0@???.evernote.com"
+  "Evernote importer address assigned your evernote account.")
+
+(defvar epic-evernote-mail-headers
+  '("Message-Id:"
+    "Subject:"
+    "From:"
+    "To:"
+    "Cc:"
+    "Date:")
+  "Mail headers which need to be remained in the head of created note."
+  )
+
+(defun epic/mew-get-message-header-as-string (folder-name msgnum)
+  (save-window-excursion
+    (mew-summary-set-message-buffer folder-name msgnum)
+    (mapconcat '(lambda (header)
+                  (let (value)
+                    (if (setq value (mew-header-get-value header))
+                        (format "%s %s\n" header value))))
+               epic-evernote-mail-headers
+               "")))
+
+(defun epic-mew-forward-to-evernote ()
+  "Foward a mail to Evernote with the original headers."
+  (interactive)
+  (when (memq major-mode '(mew-summary-mode mew-virtual-mode))
+    (let* ((msgnum (mew-summary-message-number2))
+           (folder-name (mew-summary-folder-name))
+           (mew-forward-string "")
+           (mew-ask-send nil)
+           (headers (epic/mew-get-message-header-as-string folder-name msgnum)))
+      (mew-summary-forward)
+      (mew-header-replace-value "To:" epic-evernote-mail-address)
+      (mew-header-goto-body)
+      (insert headers)
+      (insert " \n")
+      (goto-char (point-min))
+      (search-forward-regexp "^Subject: " nil t)
+      ;; (mew-draft-send-message)
+      )))
+
+(provide 'epic)
 
 ;;; Copyright Notice:
 

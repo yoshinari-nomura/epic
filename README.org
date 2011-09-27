@@ -1,17 +1,46 @@
 #+TITLE: Epic -- Evernote Picker for Cocoa Emacs
-#+AUTHOR: Yoshinari Nomura
+#+AUTHOR: Yoshinari Nomura (乃村 能成)
 #+EMAIL: nom@quickhack.net
-#+DATE: 2011-06-24
+#+DATE: 2011-06-27
 
-* Epic
+* What is Epic ? 
 
-Epic is a small elisp to access Evernote process via AppleScript.
-After load this file, you can:
+  Epic is a small elisp to access Evernote process via AppleScript.
+  The updated version might be available from:
+    http://github.com/yoshinari-nomura/epic
 
-  1) drag notes in Evernote to an Org-mode buffer.
-  2) use M-x ``epic-anything'' for completion of Tag and Notebook.
-  3) use M-x ``epic-insert-selected-note-as-org-links''
-     for insertion of org-style links.
+  Epic has these functions:
+
+  - For org-mode users:
+    + Org-mode becomes to recognize evernote:// links.
+    + You can drag notes in Evernote app to an org-mode buffer.
+    + ``epic-insert-selected-note-as-org-links''
+       for insertion of org-style links.
+
+  - Completing read for tags and notebooks:
+    + ``epic-anything'' :: insert tag and notebook using anything.el package.
+    + ``epic-read-notebook'', ``epic-read-tag'', `epic-read-tag-list'' :: 
+      for the completion of tags and notebooks.
+
+  - Creation of note articles:
+    + ``epic-create-note-from-region'', ``epic-create-note-from-file'' ::
+      for creation of a new note in your local Evernote.
+
+  - For Mew users:
+    + ``epic-mew-forward-to-evernote'' :: 
+       Nifty mail forwarder.
+       You need to set the vars: ``epic-evernote-mail-address'',
+       ``epic-evernote-mail-headers''
+    + ``epic-mew-create-note'' :: 
+       Import a mail article into the local Evernote app.
+
+* Setting Example
+
+  : (require 'epic)
+  : (define-key global-map [(control ?:)] 'epic-anything)
+  : (define-key mew-summary-mode-map "r" 'epic-mew-create-note)
+  : (define-key mew-summary-mode-map "e" 'epic-mew-forward-to-evernote)
+  : (setq epic-evernote-mail-address "??????@???.evernote.com")
 
 * Note for setup
 
@@ -22,5 +51,4 @@ After load this file, you can:
   Please set up your Mac referring to:
     http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
 
- The updated version might be available from:
-   http://github.com/yoshinari-nomura/epic
+-----
