@@ -2,16 +2,13 @@
 
 ;; Author:  Yoshinari Nomura <nom@quickhack.net>
 ;; Created: 2011-06-23
-;; Revised: 2011-06-24
+;; Revised: 2012-03-08
 
 ;;; Commentay:
 
-;; * What is Epic ? 
+;; * What is Epic ?
 ;;
 ;;   Epic is a small elisp to access Evernote process via AppleScript.
-;;   The updated version might be available from:
-;;     http://github.com/yoshinari-nomura/epic
-;;
 ;;   Epic has these functions:
 ;;
 ;;   - For org-mode users:
@@ -22,7 +19,7 @@
 ;;
 ;;   - Completing read for tags and notebooks:
 ;;     + ``epic-anything'' :: insert tag and notebook using anything.el package.
-;;     + ``epic-read-notebook'', ``epic-read-tag'', `epic-read-tag-list'' :: 
+;;     + ``epic-read-notebook'', ``epic-read-tag'', ``epic-read-tag-list'' ::
 ;;       for the completion of tags and notebooks.
 ;;
 ;;   - Creation of note articles:
@@ -30,11 +27,11 @@
 ;;       for creation of a new note in your local Evernote.
 ;;
 ;;   - For Mew users:
-;;     + ``epic-mew-forward-to-evernote'' :: 
+;;     + ``epic-mew-forward-to-evernote'' ::
 ;;        Nifty mail forwarder.
 ;;        You need to set the vars: ``epic-evernote-mail-address'',
 ;;        ``epic-evernote-mail-headers''
-;;     + ``epic-mew-create-note'' :: 
+;;     + ``epic-mew-create-note'' ::
 ;;        Import a mail article into the local Evernote app.
 ;;
 ;; * Setting Example
@@ -53,6 +50,11 @@
 ;;   So, you have to bind Control-L to ``copy note link'' within Evernote.
 ;;   Please set up your Mac referring to:
 ;;     http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
+;;
+;; * Contact Info
+;;
+;;   The updated version might be available from:
+;;     http://github.com/yoshinari-nomura/epic
 
 ;;; Code:
 
@@ -80,7 +82,7 @@
 
 (defun epic/get-name-list (obj-name)
   "Return the name list of tags or notebooks in Evernote.
- OBJ-NAME must be ``tags'' or ``notebook''"
+ OBJ-NAME must be ``tags'' or ``notebooks''"
   (split-string
    (substring
     (do-applescript (format "
@@ -175,7 +177,7 @@
       (setq tag-list (cons tag tag-list))
       (setq tag ""))
     (nreverse tag-list)))
-      
+
 (defun epic-read-title (&optional default)
   "Same as ``read-string'' with the exception of a descriptive prompt."
   (interactive)
@@ -216,7 +218,7 @@
   "Create a note article of Evernote from the text between BEG to END.
  Set TITLE (string), NOTEBOOK (stirng), and TAGS (list of string)
  to the article, and store it to Evernote."
-  (interactive 
+  (interactive
    (list (region-beginning) (region-end)
          (epic-read-title)
          (epic-read-notebook)
@@ -272,7 +274,7 @@
 ;;
 ;; By typing C-cC-o (org-open-at-point) on an org-link,
 ;; you can open a corresponding note in your desktop Evernote app.
-;; 
+;;
 (defun epic-org-evernote-open (path)
   (browse-url (concat "evernote:" path)))
 (org-add-link-type "evernote" 'epic-org-evernote-open)
@@ -340,7 +342,7 @@
   "Import a mail article into the local Evernote app.
  The mail article must be selected and displayed
  by typing ``.'' (mew-summary-analyze-again) in the mew-summary buffer."
-  (interactive 
+  (interactive
    (list (epic-read-title (nth 4 (epic/mew-get-message-info)))
          (epic-read-notebook)
          (epic-read-tag-list)))
@@ -418,7 +420,7 @@
 
 ;;; Copyright Notice:
 
-;; Copyright (C) 2011 Yoshinari Nomura.
+;; Copyright (C) 2011, 2012 Yoshinari Nomura.
 ;; All rights reserved.
 
 ;; Redistribution and use in source and binary forms, with or without

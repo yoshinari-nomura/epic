@@ -1,14 +1,11 @@
 #+TITLE: Epic -- Evernote Picker for Cocoa Emacs
 #+AUTHOR: Yoshinari Nomura (乃村 能成)
 #+EMAIL: nom@quickhack.net
-#+DATE: 2011-06-27
+#+DATE: 2012-03-08
 
-* What is Epic ? 
+* What is Epic ?
 
   Epic is a small elisp to access Evernote process via AppleScript.
-  The updated version might be available from:
-    http://github.com/yoshinari-nomura/epic
-
   Epic has these functions:
 
   - For org-mode users:
@@ -19,7 +16,7 @@
 
   - Completing read for tags and notebooks:
     + ``epic-anything'' :: insert tag and notebook using anything.el package.
-    + ``epic-read-notebook'', ``epic-read-tag'', `epic-read-tag-list'' :: 
+    + ``epic-read-notebook'', ``epic-read-tag'', ``epic-read-tag-list'' ::
       for the completion of tags and notebooks.
 
   - Creation of note articles:
@@ -27,11 +24,11 @@
       for creation of a new note in your local Evernote.
 
   - For Mew users:
-    + ``epic-mew-forward-to-evernote'' :: 
+    + ``epic-mew-forward-to-evernote'' ::
        Nifty mail forwarder.
        You need to set the vars: ``epic-evernote-mail-address'',
        ``epic-evernote-mail-headers''
-    + ``epic-mew-create-note'' :: 
+    + ``epic-mew-create-note'' ::
        Import a mail article into the local Evernote app.
 
 * Setting Example
@@ -51,4 +48,7 @@
   Please set up your Mac referring to:
     http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
 
------
+* Contact Info
+
+  The updated version might be available from:
+    http://github.com/yoshinari-nomura/epic
