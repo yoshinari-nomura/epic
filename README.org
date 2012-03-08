@@ -39,15 +39,6 @@
   : (define-key mew-summary-mode-map "e" 'epic-mew-forward-to-evernote)
   : (setq epic-evernote-mail-address "??????@???.evernote.com")
 
-* Note for setup
-
-  Since the current Evernote (2.2) does not have any interface to
-  acquire note-links in the form of ``evernote://...'',
-  Epic sends Control-L to make Evernote put the links to clipboard.
-  So, you have to bind Control-L to ``copy note link'' within Evernote.
-  Please set up your Mac referring to:
-    http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
-
 * Contact Info
 
   The updated version might be available from:

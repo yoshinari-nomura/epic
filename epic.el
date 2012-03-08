@@ -42,15 +42,6 @@
 ;;   : (define-key mew-summary-mode-map "e" 'epic-mew-forward-to-evernote)
 ;;   : (setq epic-evernote-mail-address "??????@???.evernote.com")
 ;;
-;; * Note for setup
-;;
-;;   Since the current Evernote (2.2) does not have any interface to
-;;   acquire note-links in the form of ``evernote://...'',
-;;   Epic sends Control-L to make Evernote put the links to clipboard.
-;;   So, you have to bind Control-L to ``copy note link'' within Evernote.
-;;   Please set up your Mac referring to:
-;;     http://docs.info.apple.com/article.html?path=Mac/10.5/en/8564.html
-;;
 ;; * Contact Info
 ;;
 ;;   The updated version might be available from:
@@ -118,21 +109,18 @@
  Evernote seems to add URIs to their notes on syncing with its cloud server.
  Therefore, this function does not work with a note which is not never
  synced before."
-  (do-applescript "
-    tell application \"System Events\"
-      set frontApp to name of first application process whose frontmost is true
-      tell process \"Evernote\"
-        activate
-        set frontmost to true
-        delay 0.1
-        keystroke \"l\" using {control down}
+  (split-string
+   (substring
+    (do-applescript "
+      tell application \"Evernote\"
+        set noteList  to selection
+        set noteLink to \"\"
+        repeat with n in noteList
+          set noteLink to (noteLink & (note link of n) & \"\n\")
+        end repeat
       end tell
-    end tell
-    tell application frontApp
-      activate
-    end tell
-    ")
-  (split-string (ns-get-pasteboard)))
+      ") 0 -1)
+   "\n"))
 
 (defun epic-selected-note-list ()
   "Return selected notes as a list of (uri . title) cons cell
