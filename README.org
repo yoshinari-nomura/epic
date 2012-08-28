@@ -1,27 +1,25 @@
 #+TITLE: Epic -- Evernote Picker for Cocoa Emacs
 #+AUTHOR: Yoshinari Nomura (乃村 能成)
 #+EMAIL: nom@quickhack.net
-#+DATE: 2012-03-08
+#+DATE: 2012-08-28
+
+* TODO
+  + More comfortable DnD a note from Evernote.app to Emacs.app.
+    If the note has org-files as attachments,
+    the org-files appeared in Emacs as if publishable project.
 
 * What is Epic ?
 
   Epic is a small elisp to access Evernote process via AppleScript.
   Epic has these functions:
 
-  - For org-mode users:
-    + Org-mode becomes to recognize evernote:// links.
-    + You can drag notes in Evernote app to an org-mode buffer.
-    + ``epic-insert-selected-note-as-org-links''
-       for insertion of org-style links.
-
   - Completing read for tags and notebooks:
-    + ``epic-anything'' :: insert tag and notebook using anything.el package.
     + ``epic-read-notebook'', ``epic-read-tag'', ``epic-read-tag-list'' ::
       for the completion of tags and notebooks.
 
   - Creation of note articles:
     + ``epic-create-note-from-region'', ``epic-create-note-from-file'' ::
-      for creation of a new note in your local Evernote.
+      for creation of a new note in your Evernote.app.
 
   - For Mew users:
     + ``epic-mew-forward-to-evernote'' ::
@@ -29,7 +27,14 @@
        You need to set the vars: ``epic-evernote-mail-address'',
        ``epic-evernote-mail-headers''
     + ``epic-mew-create-note'' ::
-       Import a mail article into the local Evernote app.
+       Import a mail article into the local Evernote.app.
+
+  - For Org-mode users:
+    With orglue.el (https://github.com/yoshinari-nomura/orglue)
+    + Org-mode becomes to recognize evernote:// links.
+    + You can drag notes in Evernote.app to an org-mode buffer.
+    + ``epic-insert-selected-note-as-org-links''
+       for insertion of org-style links.
 
 * Setting Example
 
