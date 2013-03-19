@@ -1,10 +1,16 @@
-;;; epic.el -- Evernote Picker
+;;; epic.el --- Evernote Picker
+
+;; Copyright (C) 2011, 2012 Yoshinari Nomura.
+;; All rights reserved.
 
 ;; Author:  Yoshinari Nomura <nom@quickhack.net>
 ;; Created: 2011-06-23
 ;; Revised: 2012-08-28
+;; Version: 0.1
+;; Package-Requires: ((htmlize "1.47"))
+;; Keywords: evernote, applescript
 
-;;; Commentay:
+;;; Commentary:
 
 ;; * What is Epic ?
 ;;
@@ -594,9 +600,6 @@ end emacs_converter
 (provide 'epic)
 
 ;;; Copyright Notice:
-
-;; Copyright (C) 2011, 2012 Yoshinari Nomura.
-;; All rights reserved.
 
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions
