@@ -189,7 +189,7 @@
 
 (defun epic-selected-note-list ()
   "Return selected notes as a list of (uri . title) cons cell
- like: (("title1" . "evernote:///.....") ("title2" . "evernote:///..."))."
+ like: ((\"title1\" . \"evernote:///.....\") (\"title2\" . \"evernote:///...\"))."
   (let ((uris   (epic-selected-note-uris))
         (titles (epic-selected-note-titles))
         (result '()))
