@@ -459,10 +459,10 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
 (defun epic/mew-get-message-header-as-string (folder-name msgnum)
   (save-window-excursion
     (mew-summary-set-message-buffer folder-name msgnum)
-    (mapconcat '(lambda (header)
-                  (let (value)
-                    (if (setq value (mew-header-get-value header))
-                        (format "%s %s\n" header value))))
+    (mapconcat (lambda (header)
+                 (let (value)
+                   (if (setq value (mew-header-get-value header))
+                       (format "%s %s\n" header value))))
                epic-evernote-mail-headers
                "")))
 
