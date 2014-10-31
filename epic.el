@@ -1,11 +1,10 @@
 ;;; epic.el --- Evernote Picker
 
-;; Copyright (C) 2011, 2012 Yoshinari Nomura.
+;; Copyright (C) 2011-2014 Yoshinari Nomura.
 ;; All rights reserved.
 
 ;; Author:  Yoshinari Nomura <nom@quickhack.net>
 ;; Created: 2011-06-23
-;; Revised: 2012-08-28
 ;; Version: 0.1
 ;; Package-Requires: ((htmlize "1.47"))
 ;; Keywords: evernote, applescript
@@ -108,7 +107,7 @@
 (defun epic-find-notebook-titles-in-stack (&optional stack-name)
   (epic-find-notebook-titles
    (concat "stack:" (or stack-name epic-default-evernote-stack))))
-           
+
 (defun epic-read-notebook (&optional default)
   "Completing read for notebooks of Evernote.
  This is supposed to work better with anything.el package."
@@ -123,7 +122,7 @@
          if (notebook named %s exists) then
            return 1
          end if
-         return 0 
+         return 0
        end tell
        " (epic/as-quote name)))))
 
@@ -576,7 +575,7 @@ end emacs_converter
 ")
 
 (defun epic-test (obj)
-  (do-applescript 
+  (do-applescript
    (concat epic/as-quote-script
            (format "emacs_converter(%s)" (epic/as-quote obj)))))
 
@@ -590,7 +589,7 @@ end emacs_converter
 
 (defun epic/split-lines (lines &optional LF)
   (and lines (split-string (epic/chomp lines) (or LF "\n"))))
-      
+
 (defun epic/completing-read (prompt collection hist &optional default)
   "Completing read for getting along with migemo and anything.el package."
   (let ((anything-use-migemo t))
