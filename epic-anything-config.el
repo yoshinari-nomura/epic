@@ -5,8 +5,8 @@
     (candidates . epic-tags)
     (migemo)
     (action
-     "Insert Tag Name" .
-     (lambda (candidate) (insert "#" candidate) candidate))
+     ("Insert Tag Name" .
+      (lambda (candidate) (insert "#" candidate) candidate)))
     ))
 
 (defvar anything-c-source-evernote-notebooks
