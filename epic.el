@@ -238,6 +238,17 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
     end tell
     " (epic/as-quote note-url))))
 
+(defun epic-find-note-title-by-url (note-url)
+  (sit-for 0.1) ;; required in case called as DnD-callbacks.
+  (do-applescript (format "
+    tell application \"Evernote\"
+      set aNote to find note %s
+      if (exists aNote)
+        return title of aNote as string
+      end if
+    end tell
+    " (epic/as-quote note-url))))
+
 (defun epic-note-get-tags (note-url)
   (epic/split-lines
      (do-applescript (format "
