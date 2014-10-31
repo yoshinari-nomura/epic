@@ -311,17 +311,8 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
          (epic-read-notebook)
          (epic-read-tag-list)))
   (let* ((htmlize-output-type 'font)
-         (htmlbuf (htmlize-region beg end))
-         (temp-file (make-temp-file "epic" nil ".html")))
-    (unwind-protect
-	(with-current-buffer htmlbuf
-          (write-region nil nil temp-file nil 'silent)
-          (epic-create-note-from-file temp-file title notebook tags)
-          (message "OK: %s" temp-file)
-          )
-      (kill-buffer htmlbuf)
-      (delete-file temp-file)
-      )))
+         (html-string (htmlize-region-for-paste beg end)))
+    (epic-create-note-from-html-string html-string title notebook tags)))
 
 (defun epic-create-note-from-file (file-name title &optional notebook tags attachments)
   "Create a note aricle of Evernote from the FILE-NAME.
@@ -329,7 +320,7 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
  to the article, and store it to Evernote."
   (do-applescript (format "
     tell application \"Evernote\"
-      set aNote to (create note from file %s title %s %s %s %s)
+      set aNote to (create note from file (POSIX file %s) title %s %s %s %s)
       open note window with aNote
       activate
     end tell
