@@ -22,6 +22,19 @@
         (insert "@" candidate) candidate)))
     ))
 
+(defvar anything-c-source-evernote-notebooks-in-stack
+  '((name . "Evernote Notebooks")
+    (candidates . epic-find-notebook-titles-in-stack)
+    (migemo)
+    (action
+     ("Pop To Notebook in Evernote" .
+      (lambda (candidate)
+        (epic-open-notebook-in-collection-window candidate)))
+     ("Insert Notebook Name" .
+      (lambda (candidate)
+        (insert "@" candidate) candidate)))
+    ))
+
 ;; sample
 (defun epic-anything ()
   "Using anything.el package:
@@ -33,6 +46,7 @@
   (anything
    '(
      anything-c-source-evernote-tags
+     anything-c-source-evernote-notebooks-in-stack
      anything-c-source-evernote-notebooks
      )))
 
