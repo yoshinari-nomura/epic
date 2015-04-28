@@ -87,6 +87,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Notebooks
 
+;;;###autoload
 (defun epic-create-notebook (name)
   (interactive "sNew notebook name: ")
   (if (epic-notebook-exists-p name)
@@ -111,7 +112,6 @@
 (defun epic-read-notebook (&optional default)
   "Completing read for notebooks of Evernote.
  This is supposed to work better with anything.el package."
-  (interactive)
   (epic/completing-read "Notebook: " (epic-notebooks)
                         'epic-notebook-history (or default "")))
 
@@ -298,9 +298,9 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
 
 (defun epic-read-note-title (&optional default)
   "Same as ``read-string'' with the exception of a descriptive prompt."
-  (interactive)
   (read-string "Title: " default 'epic-title-history default))
 
+;;;###autoload
 (defun epic-create-note-from-region (beg end title notebook tags)
   "Create a note article of Evernote from the text between BEG to END.
  Set TITLE (string), NOTEBOOK (stirng), and TAGS (list of string)
@@ -359,14 +359,12 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
 (defun epic-read-tag (&optional default)
   "Completing read for tags of Evernote.
  This is supposed to work better with anything.el package."
-  (interactive)
   (epic/completing-read "Tag: " (epic-tags) 'epic-tag-history (or default "")))
 
 (defun epic-read-tag-list ()
   "Completing read for tags of Evernote.
  This repeats ``epic-read-tag'' until the input is blank, and returns
  the tags in list-form."
-  (interactive)
   (let (tag (tag-list '()))
     (while (not (string= "" (setq tag
                                   (epic/completing-read
@@ -418,6 +416,7 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
       end tell
       " (epic/as-quote query-string)))))
 
+;;;###autoload
 (defun epic-open-notebook-in-collection-window (notebook-name)
   (interactive "sNotebook name: ")
   (epic-open-collection-window
@@ -426,6 +425,7 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mew support
 
+;;;###autoload
 (defun epic-mew-create-note (title notebook tags)
   "Import a mail article into the local Evernote app.
  The mail article must be selected and displayed
@@ -444,7 +444,6 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
          (point-max) title notebook tags)))))
 
 (defun epic/mew-get-message-info ()
-  (interactive)
   (when (memq major-mode '(mew-summary-mode mew-virtual-mode))
       (let ((msgnum (mew-summary-message-number2))
             (folder (mew-summary-folder-name))
@@ -467,6 +466,7 @@ query string overview: http://dev.evernote.com/documentation/cloud/chapters/sear
                epic-evernote-mail-headers
                "")))
 
+;;;###autoload
 (defun epic-mew-forward-to-evernote ()
   "Foward a mail to Evernote with the original headers."
   (interactive)
