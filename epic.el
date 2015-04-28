@@ -184,6 +184,19 @@ QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar
       end tell
       ")))
 
+(defun epic-nullify-note (note-link)
+  "Wipe the content of note specified by NOTE-LINK.
+It does not delete the note."
+  (do-applescript (format "
+    tell application \"Evernote\"
+      set aNote to find note %s
+      if (exists aNote)
+        set (HTML content of aNote) to \"\"
+      end if
+    end tell
+    " (epic/as-quote note-link)))
+  note-link)
+
 (defun epic-nullify-selected-note ()
   "Wipe the content of selected note.
 It does not delete the note."
@@ -368,6 +381,38 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
     (epic/as-option "tags" tags)
     (epic/as-option "attachments" attachments))))
 
+(defun epic-append-attachment-to-note (filename note-link)
+  (let ((attachment (epic/as-copy-file-to-sandbox filename)))
+    (do-applescript (format "
+      tell application \"Evernote\"
+        set aNote to find note %s
+        if (exists aNote)
+          open note window with aNote
+          activate
+          append aNote attachment %s
+          return note link of aNote as string
+        else
+          return 0
+        end if
+      end tell
+    " (epic/as-quote note-link)
+    (epic/as-quote
+     (epic/as-expand-file-name attachment))))))
+
+(defun epic-append-html-to-note (html-string note-link)
+  (do-applescript (format "
+    tell application \"Evernote\"
+      set aNote to find note %s
+      if (exists aNote)
+        append aNote html %s
+        return note link of aNote as string
+      else
+        return 0
+      end if
+    end tell
+    " (epic/as-quote note-link)
+    (epic/as-quote html-string))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Sandbox manipulattion
 
@@ -471,6 +516,68 @@ Return new filename in the sandbox."
   (interactive "sNotebook name: ")
   (epic-open-collection-window
    (format "notebook:\"%s\"" notebook-name)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Org mode support
+
+(declare-function org-export-get-environment "ox")
+(declare-function org-export-to-buffer "ox")
+
+(defmacro epic-org-header-narrowing (&rest form)
+  `(save-excursion
+     (save-restriction
+       (goto-char (point-min))
+       (re-search-forward "^$" nil t)
+       (narrow-to-region (point-min) (match-beginning 0))
+       (goto-char (point-min))
+       ,@form)))
+
+(defun epic-org-get-link ()
+  (epic-org-header-narrowing
+   (if (re-search-forward "^#\\+EPIC_LINK:\s*\\([^\n\s]*\\)" nil t)
+       (buffer-substring-no-properties (match-beginning 1) (match-end 1)))))
+
+(defun epic-org-put-link (link)
+  (if (epic-org-get-link)
+      (epic-org-header-narrowing
+       (re-search-forward "^#\\+EPIC_LINK:.*$" nil t)
+       (replace-match (concat "#+EPIC_LINK: " link)))
+    (epic-org-header-narrowing
+     (goto-char (point-max))
+     (insert (format "#+EPIC_LINK: %s\n" link)))))
+
+;;;###autoload
+(defun epic-create-note-from-org-buffer ()
+  "Export current org buffer into a note of Evernote in the form of HTML.
+The original org buffer is also attached to the exported note.
+Epic inserts the link string in the org buffer like:
+  #+EPIC_LINK: evernote:///view/123456/s1/xxxxxxxx-xxxx-.../
+to keep the correspondence with the previously exported note.
+Using this link, expic will export to the same note as before (nullify the
+previously exported note and re-export into it)."
+  (interactive)
+  (let* ((htmlize-output-type 'font)
+         (org-html-xml-declaration nil)
+         (org-file (buffer-file-name))
+         (org-plist (org-export-get-environment 'html))
+         (org-title (or (plist-get org-plist :title) ""))
+         (note-link nil))
+    (if (setq note-link (epic-org-get-link))
+        (epic-nullify-note note-link)
+      ;; make empty note
+      (setq note-link (epic-create-note-from-html-string "" org-title)))
+    (epic-append-html-to-note
+     (save-excursion
+       (save-window-excursion
+         (with-current-buffer
+             (org-export-to-buffer 'html "*Orglue HTML Export*")
+           (buffer-substring (point-min) (point-max)))))
+     note-link)
+    (epic-org-put-link note-link)
+    (epic-append-attachment-to-note
+     (epic/as-write-region-to-sandbox
+      (point-min) (point-max) (buffer-file-name))
+     note-link)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mew support
