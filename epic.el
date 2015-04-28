@@ -527,8 +527,9 @@ Return new filename in the sandbox."
   `(save-excursion
      (save-restriction
        (goto-char (point-min))
-       (re-search-forward "^$" nil t)
-       (narrow-to-region (point-min) (match-beginning 0))
+       (while (and (looking-at "^#\\+") (not (eobp)))
+         (forward-line 1))
+       (narrow-to-region (point-min) (point))
        (goto-char (point-min))
        ,@form)))
 
