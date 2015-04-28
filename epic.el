@@ -84,6 +84,10 @@
 
 (defvar epic-default-evernote-stack "Projects")
 
+(defvar epic-sandbox-tmp-directory "~/Library/Containers/com.evernote.Evernote/Data/epic-tmp"
+  "Temporal directory on importing/exporting attachments from/to Evernote.
+This directory should be located within the sandbox of Evernote.app.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Notebooks
 
@@ -283,13 +287,15 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
       set aList to \"\"
       if (exists aNote) and (exists attachments of aNote)
         repeat with n in (attachments of aNote)
-          write n to \"/tmp/attachment-\" & (hash of n)
+          write n to %s & \":\" & (filename of n)
           set aList to (aList & (filename of n) & \"\n\")
         end repeat
         return aList
       end if
     end tell
-    " (epic/as-quote note-url))))
+    " (epic/as-quote note-url)
+    (epic/as-quote
+     (epic/as-expand-file-name (epic-sandbox-tmp-directory))))))
 
 (defun epic-export-note (note-url filename &optional export-tags format)
   (do-applescript (format "
@@ -361,6 +367,35 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
     (epic/as-option "notebook" notebook)
     (epic/as-option "tags" tags)
     (epic/as-option "attachments" attachments))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Sandbox manipulattion
+
+(defun epic-sandbox-tmp-directory ()
+  (unless(file-directory-p epic-sandbox-tmp-directory)
+    (make-directory epic-sandbox-tmp-directory t))
+  epic-sandbox-tmp-directory)
+
+(defun epic/as-sandbox-path-for-attachment (filename)
+  "Return new path if FILENAME is located out of the sandbox for Evernote."
+  (expand-file-name
+   (file-name-nondirectory filename) (epic-sandbox-tmp-directory)))
+
+(defun epic/as-write-region-to-sandbox (start end filename)
+  "Write region START to END into FILENAME in the sandbox of Evernote.
+If the directory of FILENAME is out of the sandbox, it will be adjusted.
+Return new filename in the sandbox."
+  (let ((sandbox-file (epic/as-sandbox-path-for-attachment filename)))
+    (write-region start end sandbox-file)
+    sandbox-file))
+
+(defun epic/as-copy-file-to-sandbox (filename)
+  "Copy FILENAME to the sandbox where Evernote can access.
+Return new filename in the sandbox."
+  (let ((sandbox-file (epic/as-sandbox-path-for-attachment filename)))
+    (unless (string= filename sandbox-file)
+      (copy-file filename sandbox-file t t))
+    sandbox-file))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Tags
@@ -553,6 +588,12 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
                (string= opt-value "")))
       ""
     (format "%s %s" opt-name (epic/as-quote opt-value))))
+
+(defun epic/as-expand-file-name (path)
+  "Convert PATH from POSIX style to AppleScript style.
+Example: ~/Library/Containers/com.evernote.Evernote/Data/epic-tmp is
+converted to Users:nom:Containers:com.evernote.Evernote:Data:epic-tmp."
+  (substring (replace-regexp-in-string "/" ":" (expand-file-name path)) 1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; for debug
