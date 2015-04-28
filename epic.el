@@ -579,6 +579,17 @@ previously exported note and re-export into it)."
       (point-min) (point-max) (buffer-file-name))
      note-link)))
 
+;;;###autoload
+(defun epic-insert-selected-note-as-org-links ()
+  "Capture selected notes in Evernote, and insert org-style links."
+  (interactive)
+  (insert
+   (mapconcat
+    (lambda (x)
+      (format "[[%s][%s]]" (car x) (cdr x)))
+    (epic-selected-note-list)
+    "\n")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mew support
 
