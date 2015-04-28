@@ -522,6 +522,17 @@ Return new filename in the sandbox."
 
 (declare-function org-export-get-environment "ox")
 (declare-function org-export-to-buffer "ox")
+(declare-function org-add-link-type "org")
+
+;; Org-mode becomes to recognize evernote:// links
+(eval-after-load 'org
+  '(if (and (boundp 'org-link-protocols)
+	    (not (assoc "evernote" org-link-protocols)))
+       (org-add-link-type "evernote" 'epic-org-evernote-note-open)))
+
+;; C-cC-o (org-open-at-point) works on evernote:// links.
+(defun epic-org-evernote-note-open (path)
+  (browse-url (concat "evernote:" path)))
 
 (defmacro epic-org-header-narrowing (&rest form)
   `(save-excursion
