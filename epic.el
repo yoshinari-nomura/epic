@@ -89,6 +89,7 @@
 
 ;;;###autoload
 (defun epic-create-notebook (name)
+  "Create NAME notebook in Evernote."
   (interactive "sNew notebook name: ")
   (if (epic-notebook-exists-p name)
       (message "Notebook ``%s'' is already exists." name)
@@ -106,6 +107,8 @@
             (epic/get-name-list "notebooks"))))
 
 (defun epic-find-notebook-titles-in-stack (&optional stack-name)
+  "Return the notebook titles in STACK-NAME.
+If STACK-NAME is omitted, ``epic-default-evernote-stack'' is used."
   (epic-find-notebook-titles
    (concat "stack:" (or stack-name epic-default-evernote-stack))))
 
@@ -116,6 +119,7 @@
                         'epic-notebook-history (or default "")))
 
 (defun epic-notebook-exists-p (name)
+  "Return t if notebook NAME exists in Evernote."
   (= 1 ;; XXX: current do-applescript can't return bool.
      (do-applescript (format "
        tell application \"Evernote\"
@@ -127,6 +131,8 @@
        " (epic/as-quote name)))))
 
 (defun epic-rename-notebook (old-name new-name)
+  "Rename notebook OLD-NAME to NEW-NAME in Evernote.
+Both args must be strings.  Do nothing if NEW-NAME already exists."
   (if (and (epic-notebook-exists-p old-name)
            (not (epic-notebook-exists-p new-name)))
       (do-applescript (format "
@@ -136,6 +142,8 @@
         " (epic/as-quote old-name) (epic/as-quote new-name)))))
 
 (defun epic-find-notebook-titles (query-string)
+  "Return notebook names that have any notes matched by QUERY-STRING.
+QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar.php"
   (epic/split-lines
     (do-applescript (format "
       tell application \"Evernote\"
@@ -159,11 +167,8 @@
 ;;; Notes
 
 (defun epic-selected-note-uris ()
-  "Return the URI list of the selected notes in Evernote.
- URIs are in the form of evernote://...
- Evernote seems to add URIs to their notes on syncing with its cloud server.
- Therefore, this function does not work with a note which is not never
- synced before."
+  "Return the URI list of the selected notes in Evernote GUI.
+ URIs are in the form of evernote://..."
   (epic/split-lines
    (do-applescript "
       tell application \"Evernote\"
@@ -176,6 +181,8 @@
       ")))
 
 (defun epic-nullify-selected-note ()
+  "Wipe the content of selected note.
+It does not delete the note."
   (do-applescript "
       tell application \"Evernote\"
         set noteList  to selection
@@ -188,7 +195,8 @@
 
 (defun epic-selected-note-list ()
   "Return selected notes as a list of (uri . title) cons cell
- like: ((\"title1\" . \"evernote:///.....\") (\"title2\" . \"evernote:///...\"))."
+ like: ((\"title1\" . \"evernote:///...\")
+        (\"title2\" . \"evernote:///...\"))."
   (let ((uris   (epic-selected-note-uris))
         (titles (epic-selected-note-titles))
         (result '()))
@@ -211,9 +219,8 @@
      ")))
 
 (defun epic-find-note-titles (query-string)
-  "Return the titles of selected notes in Evernote.
-query string overview: http://dev.evernote.com/documentation/cloud/chapters/search_grammar.php
-"
+  "Return the titles of notes matched by QUERY-STRING in Evernote.
+Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar.php"
   (sit-for 0.1) ;; required in case called as DnD-callbacks.
   (epic/split-lines
     (do-applescript (format "
