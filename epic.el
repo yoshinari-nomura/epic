@@ -1,6 +1,6 @@
 ;;; epic.el --- Evernote Picker
 
-;; Copyright (C) 2011-2014 Yoshinari Nomura.
+;; Copyright (C) 2011-2015 Yoshinari Nomura.
 ;; All rights reserved.
 
 ;; Author:  Yoshinari Nomura <nom@quickhack.net>
