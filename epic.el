@@ -344,11 +344,17 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
  Set TITLE (stirng), NOTEBOOK (string), and TAGS (list of string)
  to the article, and store it to Evernote."
   (do-applescript (format "
+    set noteLink to missing value
     tell application \"Evernote\"
       set aNote to (create note with html %s title %s %s %s %s)
+      synchronize
+      repeat while noteLink is missing value
+        delay 0.5 -- wait for synchronize
+        set noteLink to (note link of aNote)
+      end repeat
       open note window with aNote
       activate
-      return (note link of aNote) as string
+      return noteLink as string
     end tell
     " (epic/as-quote html-string)
     (epic/as-quote title)
