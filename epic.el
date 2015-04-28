@@ -1,4 +1,4 @@
-;;; epic.el --- Evernote Picker
+;;; epic.el --- Evernote Picker for Cocoa Emacs
 
 ;; Copyright (C) 2011-2015 Yoshinari Nomura.
 ;; All rights reserved.
@@ -92,7 +92,7 @@
   "Create NAME notebook in Evernote."
   (interactive "sNew notebook name: ")
   (if (epic-notebook-exists-p name)
-      (message "Notebook ``%s'' is already exists." name)
+      (error "Notebook ``%s'' already exists." name)
     (do-applescript (format "
       tell application \"Evernote\"
         create notebook %s
@@ -210,12 +210,14 @@ It does not delete the note."
   "Return the titles of selected notes in Evernote."
   (sit-for 0.1) ;; required in case called as DnD-callbacks.
   (epic/split-lines
-   (epic/as-tell-evernote "
-     set noteList  to selection
-     set noteTitle to \"\"
-     repeat with n in noteList
-       set noteTitle to (noteTitle & (title of n) & \"\n\")
-     end repeat
+   (do-applescript "
+     tell application \"Evernote\"
+       set noteList  to selection
+       set noteTitle to \"\"
+       repeat with n in noteList
+         set noteTitle to (noteTitle & (title of n) & \"\n\")
+       end repeat
+     end tell
      ")))
 
 (defun epic-find-note-titles (query-string)
@@ -432,6 +434,14 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mew support
 
+(declare-function mew-summary-message-number2 "mew-syntax")
+(declare-function mew-summary-folder-name "mew-syntax")
+(declare-function mew-summary-set-message-buffer "mew-summary3")
+(declare-function mew-header-get-value "mew-header")
+(declare-function mew-summary-forward "mew-summary3")
+(declare-function mew-header-replace-value "mew-header")
+(declare-function mew-header-goto-body "mew-header")
+
 ;;;###autoload
 (defun epic-mew-create-note (title notebook tags)
   "Import a mail article into the local Evernote app.
@@ -460,7 +470,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
           (setq window  (get-buffer-window))
           (setq begin   (window-start window))
           (setq end     (point-max))
-          (setq subject (mew-header-get-value mew-subj:)))
+          (setq subject (mew-header-get-value "Subject:")))
         (list folder msgnum begin end subject))))
 
 (defun epic/mew-get-message-header-as-string (folder-name msgnum)
@@ -497,12 +507,11 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
 ;;; Helpers for Applescript
 
 (defmacro epic/as-tell-evernote (body &rest params)
-  `(do-applescript
-    (format
+  `(format
      (concat "tell application \"Evernote\"\n"
              ,body
              "end tell\n")
-     ,@params)))
+     ,@params))
 
 (defun epic/get-name-list (obj-name)
   "Return the name list of tags or notebooks in Evernote.
