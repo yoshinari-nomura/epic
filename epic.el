@@ -8,49 +8,13 @@
 ;; Version: 0.1
 ;; Package-Requires: ((htmlize "1.47"))
 ;; Keywords: evernote, applescript
+;; URL: https://github.com/yoshinari-nomura/epic
 
 ;;; Commentary:
 
-;; * What is Epic ?
-;;
-;;   Epic is a small elisp to access Evernote process via AppleScript.
-;;   Epic has these functions:
-;;
-;;   - Completing read for tags and notebooks:
-;;     + ``epic-read-notebook'', ``epic-read-tag'', ``epic-read-tag-list'' ::
-;;       for the completion of tags and notebooks.
-;;
-;;   - Creation of note articles:
-;;     + ``epic-create-note-from-region'', ``epic-create-note-from-file'' ::
-;;       for creation of a new note in your Evernote.app.
-;;
-;;   - For Mew users:
-;;     + ``epic-mew-forward-to-evernote'' ::
-;;        Nifty mail forwarder.
-;;        You need to set the vars: ``epic-evernote-mail-address'',
-;;        ``epic-evernote-mail-headers''
-;;     + ``epic-mew-create-note'' ::
-;;        Import a mail article into the local Evernote.app.
-;;
-;;   - For Org-mode users:
-;;     With orglue.el (https://github.com/yoshinari-nomura/orglue)
-;;     + Org-mode becomes to recognize evernote:// links.
-;;     + You can drag notes in Evernote.app to an org-mode buffer.
-;;     + ``epic-insert-selected-note-as-org-links''
-;;        for insertion of org-style links.
-;;
-;; * Setting Example
-;;
-;;   : (require 'epic)
-;;   : (define-key global-map [(control ?:)] 'epic-anything)
-;;   : (define-key mew-summary-mode-map "r" 'epic-mew-create-note)
-;;   : (define-key mew-summary-mode-map "e" 'epic-mew-forward-to-evernote)
-;;   : (setq epic-evernote-mail-address "??????@???.evernote.com")
-;;
-;; * Contact Info
-;;
-;;   The updated version might be available from:
-;;     http://github.com/yoshinari-nomura/epic
+;; Epic is a small elisp to access Evernote process via AppleScript.
+;; Please check README at https://github.com/yoshinari-nomura/epic/
+;; for details.
 
 ;;; Code:
 
@@ -226,7 +190,7 @@ It does not delete the note."
 
 (defun epic-find-note-titles (query-string)
   "Return the titles of notes matched by QUERY-STRING in Evernote.
-Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar.php"
+QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar.php"
   (sit-for 0.1) ;; required in case called as DnD-callbacks.
   (epic/split-lines
     (do-applescript (format "
@@ -240,6 +204,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
       " (epic/as-quote query-string)))))
 
 (defun epic-open-note (note-link)
+  "Open Evernote window of NOTE-LINK."
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -252,6 +217,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
     " (epic/as-quote note-link))))
 
 (defun epic-note-title (note-link)
+  "Return a title string of NOTE-LINK."
   (sit-for 0.1) ;; required in case called as DnD-callbacks.
   (do-applescript (format "
     tell application \"Evernote\"
@@ -263,6 +229,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
     " (epic/as-quote note-link))))
 
 (defun epic-note-tags (note-link)
+  "Return a list of tags as string in NOTE-LINK."
   (epic/split-lines
      (do-applescript (format "
        tell application \"Evernote\"
@@ -281,6 +248,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
        " (epic/as-quote note-link)))))
 
 (defun epic-find-note-attachments (note-link)
+  "Return a list of filenames of attachment in NOTE-LINK."
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -298,6 +266,9 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
      (epic/as-expand-file-name (epic-sandbox-tmp-directory))))))
 
 (defun epic-export-note (note-link filename &optional export-tags format)
+  "Export a note specified by NOTE-LINK to FILENAME.
+If optional argument EXPORT-TAGS is 'true (default), export tags in note.
+Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -369,6 +340,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
     (epic/as-option "attachments" attachments))))
 
 (defun epic-append-attachment-to-note (filename note-link)
+  "Append FILENAME to an existing note specified by NOTE-LINK."
   (let ((attachment (epic/as-copy-file-to-sandbox filename)))
     (do-applescript (format "
       tell application \"Evernote\"
@@ -387,6 +359,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
      (epic/as-expand-file-name attachment))))))
 
 (defun epic-append-html-to-note (html-string note-link)
+  "Append HTML-STRING to an existing note specified by NOTE-LINK."
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -487,6 +460,7 @@ Return new filename in the sandbox."
       " (epic/as-quote query-string)))))
 
 (defun epic-open-collection-window (query-string)
+  "Open Evernote collection window with QUERY-STRING."
   (if (string-match "^evernote://" query-string)
       (do-applescript (format "
         do shell script (\"open \" & %s)
@@ -501,6 +475,7 @@ Return new filename in the sandbox."
 ;;;###autoload
 (defun epic-open-notebook-in-collection-window (notebook-name)
   (interactive "sNotebook name: ")
+  "Open Evernote notebook window specified by NOTEBOOK-NAME."
   (epic-open-collection-window
    (format "notebook:\"%s\"" notebook-name)))
 
@@ -552,7 +527,7 @@ The original org buffer is also attached to the exported note.
 Epic inserts the link string in the org buffer like:
   #+EPIC_LINK: evernote:///view/123456/s1/xxxxxxxx-xxxx-.../
 to keep the correspondence with the previously exported note.
-Using this link, expic will export to the same note as before (nullify the
+Using this link, epic will export to the same note as before (nullify the
 previously exported note and re-export into it)."
   (interactive)
   (let* ((htmlize-output-type 'font)
