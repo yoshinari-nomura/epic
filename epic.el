@@ -5,7 +5,7 @@
 
 ;; Author:  Yoshinari Nomura <nom@quickhack.net>
 ;; Created: 2011-06-23
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((htmlize "1.47"))
 ;; Keywords: evernote, applescript
 ;; URL: https://github.com/yoshinari-nomura/epic
