@@ -48,9 +48,10 @@
 
 (defvar epic-default-evernote-stack "Projects")
 
-(defvar epic-sandbox-tmp-directory "~/Library/Containers/com.evernote.Evernote/Data/epic-tmp"
+(defvar epic-sandbox-tmp-directory nil
   "Temporal directory on importing/exporting attachments from/to Evernote.
-This directory should be located within the sandbox of Evernote.app.")
+This directory should be located within the sandbox of Evernote.app
+like: ~/Library/Containers/com.evernote.Evernote/Data/epic-tmp")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Notebooks
@@ -377,9 +378,11 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
 ;;; Sandbox manipulattion
 
 (defun epic-sandbox-tmp-directory ()
-  (unless(file-directory-p epic-sandbox-tmp-directory)
-    (make-directory epic-sandbox-tmp-directory t))
-  epic-sandbox-tmp-directory)
+  "Return sandbox directory where Evernote has access right."
+  (let ((dir (or epic-sandbox-tmp-directory temporary-file-directory)))
+    (unless (file-directory-p dir)
+      (make-directory dir t))
+    dir))
 
 (defun epic/as-sandbox-path-for-attachment (filename)
   "Return new path if FILENAME is located out of the sandbox for Evernote."
