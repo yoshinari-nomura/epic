@@ -197,19 +197,6 @@ It does not delete the note."
     " (epic/as-quote note-link)))
   note-link)
 
-(defun epic-nullify-selected-note ()
-  "Wipe the content of selected note.
-It does not delete the note."
-  (do-applescript "
-      tell application \"Evernote\"
-        set noteList  to selection
-        set noteLink to \"\"
-        repeat with n in noteList
-          set (HTML content of n) to \"\"
-        end repeat
-      end tell
-      "))
-
 (defun epic-selected-note-list ()
   "Return selected notes as a list of (uri . title) cons cell
  like: ((\"title1\" . \"evernote:///...\")
@@ -778,12 +765,13 @@ end emacs_converter
 ;;; Misc
 
 (defun epic/chomp (str &optional LF)
-  (if (string= (substring str -1) (or LF "\n"))
+  (if (and (< 0 (length str)) (string= (substring str -1) (or LF "\n")))
       (substring str 0 -1)
     str))
 
 (defun epic/split-lines (lines &optional LF)
-  (and lines (split-string (epic/chomp lines) (or LF "\n"))))
+  (and lines (not (string= lines ""))
+       (split-string (epic/chomp lines) (or LF "\n"))))
 
 (defun epic/completing-read (prompt collection hist &optional default)
   "Completing read for getting along with migemo and anything.el package."
