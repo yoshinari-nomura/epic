@@ -452,8 +452,9 @@ Return new filename in the sandbox."
 
 ;;;###autoload
 (defun epic-open-notebook-in-collection-window (notebook-name)
-  (interactive "sNotebook name: ")
   "Open Evernote notebook window specified by NOTEBOOK-NAME."
+  (interactive
+   (list (epic-read-notebook)))
   (epic-open-collection-window
    (format "notebook:\"%s\"" notebook-name)))
 
