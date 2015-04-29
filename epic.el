@@ -435,30 +435,8 @@ Return new filename in the sandbox."
 ;;; UI Control of Evernote App
 
 ;; XXX: I don't want to open another collection window.
-;; hint for fix?: http://discussion.evernote.com/topic/9621-applescript-to-open-specific-notebook/
-(defun epic-open-collection-window-old (query-string)
-  (if (string-match "^evernote://" query-string)
-      (do-applescript (format "
-        do shell script (\"open -g \" & %s)
-        delay 1
-        tell application \"Evernote\"
-          set noteList to selection
-          repeat with n in noteList
-            set noteTitle to (title of n)
-            set notebookname to (name of (notebook of n))
-          end repeat
-          open collection window with query string \"intitle:\\\"\" & noteTitle & \"\\\" notebook:\\\"\" & notebookname & \"\\\"\"
-          activate
-        end tell
-        -- \"notebook:\\\"\" & notebookname & \"\\\"\"
-        " (epic/as-quote query-string)))
-    (do-applescript (format "
-      tell application \"Evernote\"
-        open collection window with query string %s
-        activate
-      end tell
-      " (epic/as-quote query-string)))))
-
+;; Hint for fix?
+;;   http://discussion.evernote.com/topic/9621-applescript-to-open-specific-notebook/
 (defun epic-open-collection-window (query-string)
   "Open Evernote collection window with QUERY-STRING."
   (if (string-match "^evernote://" query-string)
