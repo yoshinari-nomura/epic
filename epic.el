@@ -273,11 +273,11 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
     tell application \"Evernote\"
       set aNote to find note %s
       if (exists aNote)
-        export {aNote} to %s %s %s
+        export {aNote} to (POSIX file %s) %s %s
       end if
     end tell
-    (epic/as-quote filename)
     " (epic/as-quote note-link)
+    (epic/as-quote (expand-file-name filename))
     (epic/as-option "tags" (or export-tags 'true))
     (epic/as-option "format" (or format 'HTML)))))
 
@@ -310,7 +310,7 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
       open note window with aNote
       activate
     end tell
-    " (epic/as-quote file-name)
+    " (epic/as-quote (expand-file-name file-name))
     (epic/as-quote title)
     (epic/as-option "notebook" notebook)
     (epic/as-option "tags" tags)
@@ -348,7 +348,7 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
         if (exists aNote)
           open note window with aNote
           activate
-          append aNote attachment %s
+          append aNote attachment (POSIX file %s)
           return note link of aNote as string
         else
           return 0
@@ -356,7 +356,7 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
       end tell
     " (epic/as-quote note-link)
     (epic/as-quote
-     (epic/as-expand-file-name attachment))))))
+     (expand-file-name attachment))))))
 
 (defun epic-append-html-to-note (html-string note-link)
   "Append HTML-STRING to an existing note specified by NOTE-LINK."
