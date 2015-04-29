@@ -239,7 +239,7 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
       end tell
       " (epic/as-quote query-string)))))
 
-(defun epic-find-note-by-url (note-url)
+(defun epic-open-note (note-link)
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -249,9 +249,9 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
         return note link of aNote as string
       end if
     end tell
-    " (epic/as-quote note-url))))
+    " (epic/as-quote note-link))))
 
-(defun epic-find-note-title-by-url (note-url)
+(defun epic-note-title (note-link)
   (sit-for 0.1) ;; required in case called as DnD-callbacks.
   (do-applescript (format "
     tell application \"Evernote\"
@@ -260,9 +260,9 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
         return title of aNote as string
       end if
     end tell
-    " (epic/as-quote note-url))))
+    " (epic/as-quote note-link))))
 
-(defun epic-note-get-tags (note-url)
+(defun epic-note-tags (note-link)
   (epic/split-lines
      (do-applescript (format "
        tell application \"Evernote\"
@@ -278,9 +278,9 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
            end if
          end if
        end tell
-       " (epic/as-quote note-url)))))
+       " (epic/as-quote note-link)))))
 
-(defun epic-find-note-attachments (note-url)
+(defun epic-find-note-attachments (note-link)
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -293,11 +293,11 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
         return aList
       end if
     end tell
-    " (epic/as-quote note-url)
+    " (epic/as-quote note-link)
     (epic/as-quote
      (epic/as-expand-file-name (epic-sandbox-tmp-directory))))))
 
-(defun epic-export-note (note-url filename &optional export-tags format)
+(defun epic-export-note (note-link filename &optional export-tags format)
   (do-applescript (format "
     tell application \"Evernote\"
       set aNote to find note %s
@@ -305,8 +305,8 @@ Grammar of QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/sea
         export {aNote} to %s %s %s
       end if
     end tell
-    " (epic/as-quote note-url)
     (epic/as-quote filename)
+    " (epic/as-quote note-link)
     (epic/as-option "tags" (or export-tags 'true))
     (epic/as-option "format" (or format 'HTML)))))
 
