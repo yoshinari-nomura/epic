@@ -247,7 +247,7 @@ QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar
        end tell
        " (epic/as-quote note-link)))))
 
-(defun epic-find-note-attachments (note-link)
+(defun epic-note-attachments (note-link)
   "Return a list of filenames of attachment in NOTE-LINK."
   (do-applescript (format "
     tell application \"Evernote\"
