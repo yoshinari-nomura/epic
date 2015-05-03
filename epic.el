@@ -471,7 +471,7 @@ Return new filename in the sandbox."
 ;; Org-mode becomes to recognize evernote:// links
 (eval-after-load 'org
   '(if (and (boundp 'org-link-protocols)
-	    (not (assoc "evernote" org-link-protocols)))
+            (not (assoc "evernote" org-link-protocols)))
        (org-add-link-type "evernote" 'epic-org-evernote-note-open)))
 
 ;; C-cC-o (org-open-at-point) works on evernote:// links.
