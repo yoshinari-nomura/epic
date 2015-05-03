@@ -264,7 +264,7 @@ QUERY-STRING is detailed in https://dev.evernote.com/doc/articles/search_grammar
     end tell
     " (epic/as-quote note-link)
     (epic/as-quote
-     (epic/as-expand-file-name (epic-sandbox-tmp-directory))))))
+     (epic/as-expand-file-name (epic/sandbox-tmp-directory))))))
 
 (defun epic-export-note (note-link filename &optional export-tags format)
   "Export a note specified by NOTE-LINK to FILENAME.
@@ -377,7 +377,7 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Sandbox manipulattion
 
-(defun epic-sandbox-tmp-directory ()
+(defun epic/sandbox-tmp-directory ()
   "Return sandbox directory where Evernote has access right."
   (let ((dir (or epic-sandbox-tmp-directory temporary-file-directory)))
     (unless (file-directory-p dir)
@@ -387,7 +387,7 @@ Optional argument FORMAT is one of 'ENEX or ‌'HTML (default)."
 (defun epic/as-sandbox-path-for-attachment (filename)
   "Return new path if FILENAME is located out of the sandbox for Evernote."
   (expand-file-name
-   (file-name-nondirectory filename) (epic-sandbox-tmp-directory)))
+   (file-name-nondirectory filename) (epic/sandbox-tmp-directory)))
 
 (defun epic/as-write-region-to-sandbox (start end filename)
   "Write region START to END into FILENAME in the sandbox of Evernote.
@@ -478,7 +478,7 @@ Return new filename in the sandbox."
 (defun epic-org-evernote-note-open (path)
   (browse-url (concat "evernote:" path)))
 
-(defmacro epic-org-header-narrowing (&rest form)
+(defmacro epic/org-header-narrowing (&rest form)
   `(save-excursion
      (save-restriction
        (goto-char (point-min))
@@ -489,16 +489,16 @@ Return new filename in the sandbox."
        ,@form)))
 
 (defun epic-org-get-link ()
-  (epic-org-header-narrowing
+  (epic/org-header-narrowing
    (if (re-search-forward "^#\\+EPIC_LINK:\s*\\([^\n\s]*\\)" nil t)
        (buffer-substring-no-properties (match-beginning 1) (match-end 1)))))
 
 (defun epic-org-put-link (link)
   (if (epic-org-get-link)
-      (epic-org-header-narrowing
+      (epic/org-header-narrowing
        (re-search-forward "^#\\+EPIC_LINK:.*$" nil t)
        (replace-match (concat "#+EPIC_LINK: " link)))
-    (epic-org-header-narrowing
+    (epic/org-header-narrowing
      (goto-char (point-max))
      (insert (format "#+EPIC_LINK: %s\n" link)))))
 
@@ -767,7 +767,7 @@ on emacs_converter(obj)
 end emacs_converter
 ")
 
-(defun epic-test (obj)
+(defun epic/test (obj)
   (do-applescript
    (concat epic/as-quote-script
            (format "emacs_converter(%s)" (epic/as-quote obj)))))
