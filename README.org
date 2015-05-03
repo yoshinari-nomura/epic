@@ -2,6 +2,8 @@
 #+AUTHOR: Yoshinari Nomura (乃村 能成)
 #+EMAIL: nom@quickhack.net
 
+[[http://melpa.org/#/epic][file:http://melpa.org/packages/epic-badge.svg]]
+
 * What is Epic?
 
   Epic is a small elisp to access Evernote process via AppleScript.
