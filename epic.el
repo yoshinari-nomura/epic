@@ -547,6 +547,60 @@ previously exported note and re-export into it)."
     "\n")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Helm support
+
+(defvar helm-c-source-evernote-tags
+  '((name . "Evernote Tags")
+    (candidates . epic-tags)
+    (migemo)
+    (action
+     ("Insert Tag Name" .
+      (lambda (candidate) (insert "#" candidate) candidate)))
+    ))
+
+(defvar helm-c-source-evernote-notebooks
+  '((name . "Evernote Notebooks")
+    (candidates . epic-notebooks)
+    (migemo)
+    (action
+     ("Pop To Notebook in Evernote" .
+      (lambda (candidate)
+        (epic-open-notebook-in-collection-window candidate)))
+     ("Insert Notebook Name" .
+      (lambda (candidate)
+        (insert "@" candidate) candidate)))
+    ))
+
+(defvar helm-c-source-evernote-notebooks-in-stack
+  '((name . "Evernote Notebooks In Stack")
+    (candidates . epic-find-notebook-titles-in-stack)
+    (migemo)
+    (action
+     ("Pop To Notebook in Evernote" .
+      (lambda (candidate)
+        (epic-open-notebook-in-collection-window candidate)))
+     ("Insert Notebook Name" .
+      (lambda (candidate)
+        (insert "@" candidate) candidate)))
+    ))
+
+(declare-function helm "helm")
+
+;;;###autoload
+(defun epic-helm ()
+  "Insert or jump using helm.el package.
+Insert the name of selected tag of Evernote with the prefix of `#'.
+Insert the name of selected notebook of Evernote with the prefix of `@'.
+Pop to Evernote App and open the selected notebook."
+  (interactive)
+  (helm
+   '(
+     helm-c-source-evernote-tags
+     helm-c-source-evernote-notebooks-in-stack
+     helm-c-source-evernote-notebooks
+     )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mew support
 
 (declare-function mew-summary-message-number2 "mew-syntax")
