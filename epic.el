@@ -472,7 +472,11 @@ Return new filename in the sandbox."
 (eval-after-load 'org
   '(if (and (boundp 'org-link-protocols)
             (not (assoc "evernote" org-link-protocols)))
-       (org-add-link-type "evernote" 'epic-org-evernote-note-open)))
+       ;; org version 8
+       (org-add-link-type "evernote" 'epic-org-evernote-note-open)
+     ;; org version 9
+     (org-link-set-parameters "evernote"
+                              :follow #'epic-org-evernote-note-open)))
 
 ;; C-cC-o (org-open-at-point) works on evernote:// links.
 (defun epic-org-evernote-note-open (path)
